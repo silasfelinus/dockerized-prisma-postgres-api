@@ -17,9 +17,9 @@ app.get("/", (_req, res: Response) => {
 
 
 // Getting todos route
-app.get('/api/todos', async (req: Request, res: Response) => {
+app.get('/api/tasks', async (req: Request, res: Response) => {
     try {
-        const allUsers = await prisma.todo.findMany();
+        const allUsers = await prisma.task.findMany();
         return res.json({
             success: true,
             data: allUsers
@@ -34,10 +34,10 @@ app.get('/api/todos', async (req: Request, res: Response) => {
 
 
 // Adding todo route
-app.post('/api/todos', async (req: Request, res: Response) => {
+app.post('/api/tasks', async (req: Request, res: Response) => {
     try {
         const { title, description, completed } = req.body;
-        const newTodo = await prisma.todo.create({
+        const newTask = await prisma.task.create({
             data: {
                 title,
                 description,
@@ -46,7 +46,7 @@ app.post('/api/todos', async (req: Request, res: Response) => {
         });
         return res.json({
             success: true,
-            data: newTodo
+            data: newTask
         });
     } catch (error) {
         return res.json({

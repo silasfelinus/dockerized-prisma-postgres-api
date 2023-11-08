@@ -1,11 +1,11 @@
 {
-  "name": "dockerized-prisma-postgres-api",
+  "name": "prisma-dock",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node index.ts"
+    "start": "ts-node index.ts --hostname 0.0.0.0"
   },
   "keywords": [],
   "author": "",
