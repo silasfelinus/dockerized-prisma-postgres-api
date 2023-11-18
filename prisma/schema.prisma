@@ -1,12 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -120,6 +117,8 @@ model Channel {
   Art         Art[]
   pitchId     Int?
   Post        Post[]
+
+  @@index([userId], map: "Channel_userId_fkey")
 }
 
 // /prisma/schema.prisma
@@ -159,6 +158,25 @@ model Gallery {
   isMature       Boolean   @default(false)
   Art            Art[]
   User           User?     @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Gallery_userId_fkey")
+}
+
+model Game {
+  id         Int       @id @unique @default(autoincrement())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime?
+  content    String    @db.Text
+  category   String    @default("Blue Sky Tasks")
+  isFinished Boolean   @default(false)
+  userId     Int
+  reward     String    @default("A Magic Reward")
+  icon       String?
+  points     Int       @default(10)
+  isPrivate  Boolean   @default(false)
+  User       User      @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Game_userId_fkey")
 }
 
 model Log {
@@ -180,6 +198,9 @@ model Message {
   userId    Int?      @default(0)
   Channel   Channel   @relation(fields: [channelId], references: [id])
   User      User?     @relation(fields: [userId], references: [id])
+
+  @@index([channelId], map: "Message_channelId_fkey")
+  @@index([userId], map: "Message_userId_fkey")
 }
 
 model Milestone {
@@ -323,6 +344,27 @@ model Product {
   imagePath     String?
 }
 
+model Resource {
+  id           Int          @id @unique @default(autoincrement())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime?
+  userId       Int?
+  name         String       @unique
+  customLabel  String?
+  MediaPath    String?
+  customUrl    String?
+  civitaiUrl   String?
+  huggingUrl   String?
+  localPath    String?
+  description  String?      @db.Text
+  resourceType ResourceType @default(CHECKPOINT)
+  isMature     Boolean      @default(false)
+  galleryCount Int?
+  User         User?        @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Resource_userId_fkey")
+}
+
 model Reward {
   id         Int       @id @default(autoincrement())
   createdAt  DateTime  @default(now())
@@ -388,15 +430,6 @@ model Tag {
   postId       Int?
 }
 
-model Task {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-  title       String
-  description String?
-  completed   Boolean  @default(false)
-}
-
 model Todo {
   id        Int       @id @default(autoincrement())
   task      String
@@ -451,10 +484,12 @@ model User {
   Bot                 Bot[]
   Channel             Channel[]
   Gallery             Gallery[]
+  Game                Game[]
   Message             Message[]
   milestones          Milestone[]
   MilestoneRecord     MilestoneRecord[]
   Products            Product[]
+  Resource            Resource[]
   Tag                 Tag[]
   Todo                Todo[]
   Reward              Reward[]          @relation("RewardToUser")
@@ -472,6 +507,25 @@ enum BotType {
   ARTBOT
 }
 
+enum ModelType {
+  BOT
+  GALLERY
+  MEDIA
+  MESSAGE
+  PROJECT
+  PROMPT
+  QUEST
+  REACTION
+  RESOURCE
+  USER
+  MODEL
+  DREAM
+  STATUS
+  ERROR
+  CONTENT
+  GAME
+}
+
 enum Role {
   SYSTEM
   USER
@@ -481,4 +535,15 @@ enum Role {
   BOT
   DESIGNER
   CHILD
+}
+
+enum ResourceType {
+  CHECKPOINT
+  EMBEDDING
+  LORA
+  LYCORIS
+  HYPERNETWORK
+  CONTROLNET
+  URL
+  API
 }

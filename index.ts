@@ -1,61 +1,44 @@
-import express, { Application, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client'
+import express, { Application, Request, Response, NextFunction } from 'express';
+import { PrismaClient } from '@prisma/client';
 
+// Import specific Prisma errors if available
+// import { PrismaClientKnownRequestError } from '@prisma/client'; 
 
 const app: Application = express();
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const port: number = 3000;
 
-// testing route
-app.get("/", (_req, res: Response) => {
-    res.send(`Server is running on port: ${port}`);
+const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error(err);
+
+    if (err.name === 'PrismaClientKnownRequestError') {
+        // Handle specific Prisma errors
+        res.status(400).json({ success: false, message: "A database error occurred." });
+    } else {
+        // Generic error response for unexpected errors
+        res.status(500).json({ success: false, message: "An internal server error occurred." });
+    }
+};
+
+app.get("/", (req: Request, res: Response) => {
+    res.send(`Kind Robots Prisma Server is running on port: ${port}`);
 });
 
-
-// Getting todos route
-app.get('/api/tasks', async (req: Request, res: Response) => {
+app.get('/api/bots', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const allUsers = await prisma.task.findMany();
-        return res.json({
-            success: true,
-            data: allUsers
-        });
+        const allBots = await prisma.bot.findMany();
+        res.json({ success: true, data: allBots });
     } catch (error) {
-        return res.json({
-            success: false,
-            message: error
-        });
+        next(error); // Forward the error to the centralized error handler
     }
 });
 
-
-// Adding todo route
-app.post('/api/tasks', async (req: Request, res: Response) => {
-    try {
-        const { title, description, completed } = req.body;
-        const newTask = await prisma.task.create({
-            data: {
-                title,
-                description,
-                completed
-            }
-        });
-        return res.json({
-            success: true,
-            data: newTask
-        });
-    } catch (error) {
-        return res.json({
-            success: false,
-            message: error
-        });
-    }
-});
+app.use(errorHandler);
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-})
+    console.log(`Server running on port ${port}`);
+});
